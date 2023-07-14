@@ -59,10 +59,10 @@ export default defineComponent({
   mixins: [validationMixin],
 
   validations: {
-      signInData: {
-        email: {required, email},
-        password: {required, maxLength: maxLength(20)},
-      }
+    signInData: {
+      email: {required, email},
+      password: {required, maxLength: maxLength(20)},
+    }
   },
 
   data: () => ({
@@ -91,13 +91,13 @@ export default defineComponent({
   },
 
   methods: {
-    ...mapActions([
-      'GET_EXISTING_USER_DATA_FROM_API',
-    ]),
+    ...mapActions({
+      getUserData: 'GET_EXISTING_USER_DATA_FROM_API',
+    }),
     submit() {
       this.$v.$touch()
       console.log('Карыстальнік увеў', this.signInData.email, this.signInData.password)
-      this.GET_EXISTING_USER_DATA_FROM_API(this.signInData)
+      this.getUserData(this.signInData)
         .then(response => {
           if (response) {
             console.log("З АПІ прыйшла юзер дата: ", response)

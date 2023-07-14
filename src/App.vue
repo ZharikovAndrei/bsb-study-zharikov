@@ -11,101 +11,16 @@
       <v-btn
         text
         rounded
-      >
-        <router-link
-          to="/"
-          exact
-          active-class="active"
-          tag="v-btn"
-        >
-          <v-icon class="mr-2">mdi-home</v-icon>
-          <span>Home</span>
-        </router-link>
-      </v-btn>
-
-      <v-btn
-        text
-        v-if="!auth.isLoggedIn"
+        active-class="active-route"
+        v-for="btn in buttons"
+        :key="buttons.route"
+        :to="btn.route"
+        exact
         class="mx-4"
-        rounded
+        v-if="auth.isLoggedIn === btn.isLoggedIn || !btn.hasOwnProperty('isLoggedIn')"
       >
-        <router-link
-          to="/sign-in"
-          exact
-          active-class="active"
-          tag="v-btn"
-        >
-          <v-icon class="mr-2">mdi-account-box</v-icon>
-          <span>Sign in</span>
-        </router-link>
-      </v-btn>
-
-      <v-btn
-        text
-        v-if="!auth.isLoggedIn"
-        class="mr-4"
-        rounded
-      >
-        <router-link
-          to="/sign-up"
-          exact
-          active-class="active"
-          tag="v-btn"
-        >
-          <v-icon class="mr-2">mdi-account-plus</v-icon>
-          <span>Sign up</span>
-        </router-link>
-      </v-btn>
-
-      <v-btn
-        text
-        v-if="auth.isLoggedIn"
-        class="mx-6"
-        rounded
-      >
-        <router-link
-          to="/new-article"
-          exact
-          active-class="active"
-          tag="v-btn"
-        >
-          <v-icon class="mr-2">mdi-newspaper</v-icon>
-          <span>New Article</span>
-        </router-link>
-      </v-btn>
-
-      <v-btn
-        text
-        v-if="auth.isLoggedIn"
-        class="mr-6"
-        rounded
-      >
-        <router-link
-          to="/about"
-          exact
-          active-class="active"
-          tag="v-btn"
-        >
-          <v-icon class="mr-2">mdi-cogs</v-icon>
-          <span>Settings</span>
-        </router-link>
-      </v-btn>
-
-      <v-btn
-        text
-        rounded
-        v-if="auth.isLoggedIn"
-        class="mr-6 "
-      >
-        <router-link
-          to="/about"
-          exact
-          active-class="active"
-          tag="v-btn"
-        >
-          <v-icon class="mr-2">mdi-account</v-icon>
-          <span>{{ USER_DATA.username }}</span>
-        </router-link>
+        <v-icon class="mr-2">{{ btn.icon }}</v-icon>
+        <span>{{ btn.title }}</span>
       </v-btn>
     </v-app-bar>
 
@@ -116,7 +31,6 @@
 </template>
 
 <script>
-
 import {mapGetters} from "vuex";
 import {authService} from "@/main";
 
@@ -125,6 +39,43 @@ export default {
 
   data: () => ({
     auth: authService,
+    buttons: [
+      {
+        title: 'Home',
+        icon: 'mdi-home',
+        route: {name: 'home'},
+      },
+      {
+        title: 'Sign In',
+        icon: 'mdi-account-box',
+        route: {name: 'SignIn'},
+        isLoggedIn: false,
+      },
+      {
+        title: 'Sign Up',
+        icon: 'mdi-account-plus',
+        route: {name: 'SignUp'},
+        isLoggedIn: false,
+      },
+      {
+        title: 'New Article',
+        icon: 'mdi-newspaper',
+        route: {name: 'NewArticle'},
+        isLoggedIn: true,
+      },
+      {
+        title: 'Settings',
+        icon: 'mdi-cogs',
+        route: {name: 'about'},
+        isLoggedIn: true,
+      },
+      {
+        title: 'My profile',
+        icon: 'mdi-account',
+        route: {name: 'about'},
+        isLoggedIn: true,
+      },
+    ],
   }),
   computed: {
     ...mapGetters([
@@ -140,7 +91,7 @@ export default {
   text-decoration: none;
 }
 
-.active {
+.v-application a.active-route {
   color: red;
 }
 </style>
