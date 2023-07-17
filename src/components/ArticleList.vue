@@ -6,7 +6,7 @@
         <h1 class="display-2 mb-3">
           Medium Clone
         </h1>
-        <p>{{USER_DATA.username}}</p>
+        <p>{{ user_data.username }}</p>
         <p class="subheading font-weight-regular">
           A place to share knowledge
         </p>
@@ -27,34 +27,42 @@
               Global feed
             </v-chip>
             <v-chip
-              v-if="SEARCH"
+              v-if="search"
               class="ma-2"
               close
               large
               @click:close="resetSearch"
             >
-              # {{ SEARCH }}
+              # {{ search }}
             </v-chip>
             <hr>
           </v-col>
         </v-row>
 
-        <article-card
+        <ArticleCard
           class="my-10"
-          v-for="article in ARTICLES"
+          v-for="article in paginatedArticles"
+          :key="article.slug"
           v-bind:article_data="article"
+        ></ArticleCard>
+
+        <v-pagination
+          v-model="pageNumber"
+          :length="pageCount"
+          total-visible="7"
+          color="orange lighten-1"
+          :value="pageNumber"
+          class="text-center"
         >
-        </article-card>
+        </v-pagination>
       </v-col>
 
-      <v-col
-        cols="3"
-      >
+      <v-col cols="3">
         <v-card>
           <v-card-title>Popular tags:</v-card-title>
           <v-card-text>
             <v-btn
-              v-for="tag in TAGS"
+              v-for="tag in tags"
               class="ma-1"
               elevation="3"
               active-class="active"
@@ -62,7 +70,6 @@
             >
               {{ tag }}
             </v-btn>
-
           </v-card-text>
         </v-card>
       </v-col>
@@ -71,59 +78,57 @@
 </template>
 
 <script>
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
 import ArticleCard from "@/components/ArticleCard.vue";
-import store from '@/store/index.js';
 
 export default {
   name: 'ArticleList',
-  components: {
-    ArticleCard
-  },
+  components: {ArticleCard},
   data: () => ({
     reveal: false,
     showChip: true,
+    pageNumber: 1,
+    articlesPerPage: 5,
   }),
   computed: {
+    ...mapState({
+      tags: (state) => state.tags,
+      search: (state) => state.search,
+      user_data: (state) => state.userData,
+    }),
     ...mapGetters([
-      'ARTICLES',
-      'TAGS',
-      'SEARCH',
-      'USER_DATA'
+      'ARTICLES'
     ]),
+    pageCount() {
+      return Math.ceil(this.ARTICLES.length / this.articlesPerPage)
+    },
+    paginatedArticles() {
+      let from = (this.pageNumber - 1) * this.articlesPerPage
+      let to = from + this.articlesPerPage
+      return this.ARTICLES.slice(from, to)
+    },
   },
   methods: {
-    ...mapActions([
-      'GET_ARTICLES_FROM_API',
-      'GET_TAGS_FROM_API',
-    ]),
-    ...mapMutations([
-      'SET_ARTICLES_TO_STATE'
-    ]),
-    sendSearch: (tag) => {
-      store.commit('SET_SEARCH_TO_STATE', tag)
+    ...mapActions({
+      getArticles: 'GET_ARTICLES_FROM_API',
+      getTags: 'GET_TAGS_FROM_API',
+    }),
+    ...mapMutations({
+      setSearch: 'SET_SEARCH_TO_STATE',
+    }),
+    async sendSearch(tag) {
+      await this.setSearch(tag)
+      this.pageNumber = 1
     },
-    resetSearch: () => {
-      store.commit('SET_SEARCH_TO_STATE', null)
-    }
+    async resetSearch() {
+      await this.setSearch(null)
+    },
   },
 
   mounted() {
-    this.GET_ARTICLES_FROM_API()
-      .then(response => {
-        if (response) {
-          console.log("Articles arrived: ", response.data.articlesCount)
-        }
-      })
-    this.GET_TAGS_FROM_API()
-      .then(response => {
-        if (response) {
-          console.log("Tags arrived")
-        }
-      })
-
+    this.getArticles()
+    this.getTags()
   }
-
 }
 </script>
 

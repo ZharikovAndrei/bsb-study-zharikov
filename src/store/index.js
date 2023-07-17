@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from "axios";
+import {authService, mediumApi} from "@/main";
 
 Vue.use(Vuex)
 
@@ -19,22 +20,6 @@ export default new Vuex.Store({
       }
       return state.articles.filter(element => element.tagList.includes(state.search));
     },
-    TAGS(state) {
-      return state.tags;
-    },
-    IMAGES(state) {
-      return state.articles.image;
-    },
-    SEARCH(state) {
-      console.log('SEARCH: ', state.search)
-      return state.search;
-    },
-    USER_DATA(state) {
-      return state.userData;
-    },
-    NEW_ARTICLE(state) {
-      return state.newArticle;
-    },
   },
   mutations: {
     SET_ARTICLES_TO_STATE: (state, articles) => {
@@ -52,79 +37,71 @@ export default new Vuex.Store({
     },
     STATE_NEW_ARTICLE_TO_STATE: (state, newArticle) => {
       state.newArticle = newArticle;
-    }
+    },
   },
-  actions:
-    {
-      GET_ARTICLES_FROM_API({commit}) {
-        return axios('https://api.realworld.io/api/articles?limit=197&offset=0', {
+  actions: {
+    async GET_ARTICLES_FROM_API({commit}) {
+      try {
+        const response = await axios('https://api.realworld.io/api/articles?limit=197&offset=0', {
           method: "GET"
         })
-          .then(response => {
-            commit('SET_ARTICLES_TO_STATE', response.data.articles);
-            return response;
-          })
-          .catch(error => {
-            console.log(error);
-            return error;
-          })
-      },
-      GET_TAGS_FROM_API({commit}) {
-        return axios('https://api.realworld.io/api/tags', {
+        if (response) {
+          commit('SET_ARTICLES_TO_STATE', response.data.articles);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async GET_TAGS_FROM_API({commit}) {
+      try {
+        const response = await axios('https://api.realworld.io/api/tags', {
           method: 'GET'
         })
-          .then(response => {
-            commit('SET_TAGS_TO_STATE', response.data.tags);
-            return response;
-          })
-          .catch(error => {
-            console.log(error);
-            return error;
-          })
-      },
-      GET_EXISTING_USER_DATA_FROM_API({commit}, signInData) {
+        if (response) {
+          commit('SET_TAGS_TO_STATE', response.data.tags);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async GET_EXISTING_USER_DATA_FROM_API({commit}, signInData) {
+      try {
         console.log('У action прыйшлі: ', signInData.email, signInData.password)
-        return axios.post('https://api.realworld.io/api/users/login', {
+        const response = await axios.post('https://api.realworld.io/api/users/login', {
           user: {
             email: signInData.email,
             password: signInData.password,
           }
         })
-          .then(response => {
-            commit('SET_USER_DATA_TO_STATE', response.data.user)
-            alert('You have logged in')
-            return response.data.user;
-          })
-          .catch(error => {
-            console.log(error);
-            return error;
-          })
-      },
-      CREATE_AN_ARTICLE({commit}, newArticle) {
-        return axios.post('https://api.realworld.io/api/articles', {
-            article: {
-              title: newArticle.title,
-              description: newArticle.description,
-              body: newArticle.body,
-              tagList: newArticle.tagList,
-            },
-          },
-          {
-            auth: {
-              email: this.state.userData.email,
-              password: this.state.userData.password,
-            },
-          })
-          .then(response => {
-            commit('STATE_NEW_ARTICLE_TO_STATE', response.data)
-            alert(`Article created by ${this.state.userData.username}`)
-            return response.data;
-          })
-          .catch(error => {
-            console.log(error);
-            return error;
-          })
-      },
+        if (response.status === 200) {
+          commit('SET_USER_DATA_TO_STATE', response.data.user)
+          authService.isLoggedIn = true
+
+        }
+      } catch (error) {
+        authService.isLoggedIn = false
+        alert(`email or password ${error.response.data.errors['email or password']}`);
+      }
     },
+    async CREATE_AN_ARTICLE({commit}, newArticle) {
+      try {
+        const response = await mediumApi.post('https://api.realworld.io/api/articles', {
+          article: {
+            title: newArticle.title,
+            description: newArticle.description,
+            body: newArticle.body,
+            tagList: newArticle.tagList,
+          },
+        })
+        if (response) {
+          commit('STATE_NEW_ARTICLE_TO_STATE', response.data)
+          console.log(`Article created by ${this.state.userData.username}`)
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+  },
   modules: {}
 })
+
