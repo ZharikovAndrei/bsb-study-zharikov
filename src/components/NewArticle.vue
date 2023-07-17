@@ -57,11 +57,11 @@ export default defineComponent({
     },
   }),
   methods: {
-    ...mapActions([
-      'CREATE_AN_ARTICLE',
-    ]),
+    ...mapActions({
+      createArticle: 'CREATE_AN_ARTICLE',
+    }),
     submit() {
-      this.CREATE_AN_ARTICLE(this.newArticle)
+      this.createArticle(this.newArticle)
         .then(response => {
           if (response) {
             console.log("Article was created: ", response.data)

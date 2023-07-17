@@ -6,7 +6,7 @@
         <h1 class="display-2 mb-3">
           Medium Clone
         </h1>
-        <!--        <p>{{ USER_DATA.username }}</p>-->
+        <p>{{ user_data.username }}</p>
         <p class="subheading font-weight-regular">
           A place to share knowledge
         </p>
@@ -17,72 +17,68 @@
       <v-col
         cols="9"
       >
-        <!--        <v-row>-->
-        <!--          <v-col>-->
-        <!--            <v-chip-->
-        <!--              class="ma-2"-->
-        <!--              large-->
-        <!--              @click="resetSearch"-->
-        <!--            >-->
-        <!--              Global feed-->
-        <!--            </v-chip>-->
-        <!--            <v-chip-->
-        <!--              v-if="search"-->
-        <!--              class="ma-2"-->
-        <!--              close-->
-        <!--              large-->
-        <!--              @click:close="resetSearch"-->
-        <!--            >-->
-        <!--              # {{ search }}-->
-        <!--            </v-chip>-->
-        <!--            <hr>-->
-        <!--          </v-col>-->
-        <!--        </v-row>-->
+        <v-row>
+          <v-col>
+            <v-chip
+              class="ma-2"
+              large
+              @click="resetSearch"
+            >
+              Global feed
+            </v-chip>
+            <v-chip
+              v-if="search"
+              class="ma-2"
+              close
+              large
+              @click:close="resetSearch"
+            >
+              # {{ search }}
+            </v-chip>
+            <hr>
+          </v-col>
+        </v-row>
 
         <ArticleCard
           class="my-10"
-          :articles="articles"
-          v-for="article in articles"
+          v-for="article in paginatedArticles"
           :key="article.slug"
           v-bind:article_data="article"
+        ></ArticleCard>
+
+        <v-pagination
+          v-model="pageNumber"
+          :length="pageCount"
+          total-visible="7"
+          color="orange lighten-1"
+          :value="pageNumber"
+          class="text-center"
         >
-        </ArticleCard>
-        ;okjhgufydtrse
-        <!--        <div class="text-center">-->
-        <!--          <v-pagination-->
-        <!--            :length="2"-->
-        <!--          >-->
-        <!--                        v-model="dataPagination.pageNumber">-->
-        <!--                        :totalPages="dataPagination.totalPages"-->
-        <!--          </v-pagination>-->
-        <!--        </div>-->
+        </v-pagination>
       </v-col>
 
-      <!--      <v-col-->
-      <!--        cols="3"-->
-      <!--      >-->
-      <!--        <v-card>-->
-      <!--          <v-card-title>Popular tags:</v-card-title>-->
-      <!--          <v-card-text>-->
-      <!--            <v-btn-->
-      <!--              v-for="tag in tags"-->
-      <!--              class="ma-1"-->
-      <!--              elevation="3"-->
-      <!--              active-class="active"-->
-      <!--              @click="sendSearch(tag)"-->
-      <!--            >-->
-      <!--              {{ tag }}-->
-      <!--            </v-btn>-->
-
-      <!--          </v-card-text>-->
-      <!--        </v-card>-->
-      <!--      </v-col>-->
+      <v-col cols="3">
+        <v-card>
+          <v-card-title>Popular tags:</v-card-title>
+          <v-card-text>
+            <v-btn
+              v-for="tag in tags"
+              class="ma-1"
+              elevation="3"
+              active-class="active"
+              @click="sendSearch(tag)"
+            >
+              {{ tag }}
+            </v-btn>
+          </v-card-text>
+        </v-card>
+      </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
-import {mapActions, mapMutations, mapState} from "vuex";
+import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
 import ArticleCard from "@/components/ArticleCard.vue";
 
 export default {
@@ -91,51 +87,47 @@ export default {
   data: () => ({
     reveal: false,
     showChip: true,
+    pageNumber: 1,
+    articlesPerPage: 5,
   }),
   computed: {
     ...mapState({
-      articles: (state) => state.articles,
-      // tags: (state) => state.tags,
-      // search: (state) => state.search,
-      // formData: (state) => state.formData,
-      // dataPagination: (state) => state.dataPagination,
+      tags: (state) => state.tags,
+      search: (state) => state.search,
+      user_data: (state) => state.userData,
     }),
+    ...mapGetters([
+      'ARTICLES'
+    ]),
+    pageCount() {
+      return Math.ceil(this.ARTICLES.length / this.articlesPerPage)
+    },
+    paginatedArticles() {
+      let from = (this.pageNumber - 1) * this.articlesPerPage
+      let to = from + this.articlesPerPage
+      return this.ARTICLES.slice(from, to)
+    },
   },
   methods: {
-    ...mapActions([
-      'GET_ARTICLES_FROM_API'
-      // getTags: 'GET_TAGS_FROM_API',
-    ]),
-    ...mapMutations([
-      'SET_ARTICLES_TO_STATE',
-      // setPageSize: 'SET_PAGE_SIZE',
-      // setSearch: 'SET_SEARCH_TO_STATE',
-    ]),
-    // async sendSearch(tag) {
-    //   await this.setSearch(tag)
-    // },
-    // async resetSearch() {
-    //   await this.setSearch(null)
-    // },
-    // async changePageSize(num) {
-    //   await this.setPageSize(num)
-    //   await this.getArticles()
-    // },
+    ...mapActions({
+      getArticles: 'GET_ARTICLES_FROM_API',
+      getTags: 'GET_TAGS_FROM_API',
+    }),
+    ...mapMutations({
+      setSearch: 'SET_SEARCH_TO_STATE',
+    }),
+    async sendSearch(tag) {
+      await this.setSearch(tag)
+      this.pageNumber = 1
+    },
+    async resetSearch() {
+      await this.setSearch(null)
+    },
   },
 
   mounted() {
-    this.GET_ARTICLES_FROM_API()
-      // .then(response => {
-      //   if (response) {
-      //     console.log("Articles arrived: ")
-      //   }
-      // })
-    // this.getTags()
-    //   .then(response => {
-    //     if (response) {
-    //       console.log("Tags arrived")
-    //     }
-    //   })
+    this.getArticles()
+    this.getTags()
   }
 }
 </script>

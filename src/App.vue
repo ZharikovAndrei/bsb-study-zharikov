@@ -31,7 +31,6 @@
 </template>
 
 <script>
-import {mapGetters} from "vuex";
 import {authService} from "@/main";
 
 export default {
@@ -77,11 +76,7 @@ export default {
       },
     ],
   }),
-  computed: {
-    ...mapGetters([
-      'USER_DATA'
-    ]),
-  },
+  computed: {},
   methods: {}
 };
 </script>

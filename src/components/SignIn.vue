@@ -98,13 +98,7 @@ export default defineComponent({
       this.$v.$touch()
       console.log('Карыстальнік увеў', this.signInData.email, this.signInData.password)
       this.getUserData(this.signInData)
-        .then(response => {
-          if (response) {
-            console.log("З АПІ прыйшла юзер дата: ", response)
-            this.$router.push('/')
-            this.auth.isLoggedIn = true
-          }
-        })
+      this.$router.push('/')
     },
   },
 })
